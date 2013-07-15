@@ -29,7 +29,7 @@ cdef extern from "pygame/pygame.h":
 
 cdef extern from "pss.h":
 
-    void PSS_play(int channel, SDL_RWops *rw, char *ext, object name, int fadein, int tight, int paused)
+    void PSS_play(int channel, SDL_RWops *rw, char *ext, object name, int fadein, int tight, int paused, int pos)
     void PSS_queue(int channel, SDL_RWops *rw, char *ext, object name, int fadein, int tight)
     void PSS_stop(int channel)
     void PSS_dequeue(int channel, int even_tight)
@@ -63,7 +63,7 @@ def check_error():
     if str(e):
         raise Exception(e)
 
-def play(channel, file, name, paused=False, fadein=0, tight=False):
+def play(channel, file, name, paused=False, fadein=0, tight=False, pos=0):
     cdef SDL_RWops *rw
 
     rw = RWopsFromPythonThreaded(file)
@@ -81,7 +81,7 @@ def play(channel, file, name, paused=False, fadein=0, tight=False):
     else:
         tight = 0
 
-    PSS_play(channel, rw, name, name, fadein, tight, pause)
+    PSS_play(channel, rw, name, name, fadein, tight, pause, pos)
     check_error()
 
 def queue(channel, file, name, fadein=0, tight=False):

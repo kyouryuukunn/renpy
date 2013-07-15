@@ -35,7 +35,7 @@ from renpy.audio.audio import get_channel, get_serial
 from renpy.audio.audio import register_channel, alias_channel
 register_channel; alias_channel
 
-def play(filenames, channel="music", loop=None, fadeout=None, synchro_start=False, fadein=0, tight=None, if_changed=False):
+def play(filenames, channel="music", loop=None, fadeout=None, synchro_start=False, fadein=0, tight=None, if_changed=False, pos=0):
     """
     This stops the music currently playing on the numbered channel, dequeues
     any queued music, and begins playing the specified file or files. If loop
@@ -89,7 +89,7 @@ def play(filenames, channel="music", loop=None, fadeout=None, synchro_start=Fals
         else:
             c.fadeout(fadeout)
 
-        c.enqueue(filenames, loop=loop, synchro_start=synchro_start, fadein=fadein, tight=tight)
+        c.enqueue(filenames, loop=loop, synchro_start=synchro_start, fadein=fadein, tight=tight, pos=pos)
 
         t = get_serial()
         ctx.last_changed = t

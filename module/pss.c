@@ -242,12 +242,12 @@ static int bytes_to_ms(int bytes) {
     return ((long long) bytes) * 1000 / (audio_spec.freq * audio_spec.channels * 2);
 }
 
-static void start_sample(struct Channel* c, int reset_fade) {
+static void start_sample(struct Channel* c, int reset_fade, int pos) {
     int fade_steps;
 
     if (!c) return;
 
-    c->pos = 0;
+    c->pos = ms_to_bytes(pos);
 
     if (reset_fade) {
         
@@ -482,7 +482,7 @@ static void callback(void *userdata, Uint8 *stream, int length) {
 
                 UNLOCK_NAME();
                 
-                start_sample(c, ! old_tight);
+                start_sample(c, ! old_tight, 0);
                 
                 continue;                
             }
@@ -546,7 +546,7 @@ struct VideoState *load_sample(SDL_RWops *rw, const char *ext) {
 }
 
     
-void PSS_play(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int fadein, int tight, int paused) {
+void PSS_play(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int fadein, int tight, int paused, int pos) {
 
     BEGIN();
     
@@ -596,7 +596,7 @@ void PSS_play(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int f
     c->playing_tight = tight;
     
     c->paused = paused;
-    start_sample(c, 1);    
+    start_sample(c, 1, pos);    
 /*     update_pause(); */
         
     UNLOCK_NAME();
@@ -622,7 +622,7 @@ void PSS_queue(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int 
     /* If we're not playing, then we should play instead of queue. */
     if (!c->playing) {
         EXIT();
-        PSS_play(channel, rw, ext, name, fadein, tight, 0);
+        PSS_play(channel, rw, ext, name, fadein, tight, 0, 0);
         return;            
     }
     

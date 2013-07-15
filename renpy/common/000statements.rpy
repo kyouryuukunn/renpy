@@ -79,6 +79,7 @@ python early hide:
         fadein = "0"
         channel = None
         loop = None
+        pos = "0"
         if_changed = False
 
         while True:
@@ -115,6 +116,13 @@ python early hide:
                 loop = False
                 continue
 
+            if l.keyword('pos'):
+                pos = l.simple_expression()
+                if pos is None:
+                    renpy.error('expected simple expression')
+
+                continue
+
             if l.keyword('if_changed'):
                 if_changed = True
                 continue
@@ -126,6 +134,7 @@ python early hide:
                     fadein=fadein,
                     channel=channel,
                     loop=loop,
+                    pos=pos,
                     if_changed=if_changed)
 
     def execute_play_music(p):
@@ -140,6 +149,7 @@ python early hide:
                          fadein=eval(p["fadein"]),
                          channel=channel,
                          loop=p.get("loop", None),
+                         pos=eval(p["pos"]),
                          if_changed=p.get("if_changed", False))
 
     def predict_play_music(p):

@@ -221,6 +221,8 @@ class Channel(object):
         # Should we buffer upcoming music/video in the queue?
         self.buffer_queue = buffer_queue
 
+        self.pos = 0
+
         if default_loop is None:
             # By default, should we loop the music?
             self.default_loop = True
@@ -349,7 +351,9 @@ class Channel(object):
                 topf = load(self.file_prefix + topq.filename + self.file_suffix)
 
                 if depth == 0:
-                    pss.play(self.number, topf, topq.filename, paused=self.synchro_start, fadein=topq.fadein, tight=topq.tight)
+                    pss.play(self.number, topf, topq.filename, paused=self.synchro_start, fadein=topq.fadein, tight=topq.tight, pos=self.pos)
+                    if self.pos != 0:
+                        self.pos = 0
                 else:
                     pss.queue(self.number, topf, topq.filename, fadein=topq.fadein, tight=topq.tight)
 
@@ -440,7 +444,7 @@ class Channel(object):
         else:
             pss.fadeout(self.number, int(secs * 1000))
 
-    def enqueue(self, filenames, loop=True, synchro_start=False, fadein=0, tight=None):
+    def enqueue(self, filenames, loop=True, synchro_start=False, fadein=0, tight=None, pos=0):
 
         for filename in filenames:
             renpy.game.persistent._seen_audio[filename] = True
@@ -467,6 +471,8 @@ class Channel(object):
 
         self.wait_stop = synchro_start
         self.synchro_start = synchro_start
+
+        self.pos = pos
 
     def get_playing(self):
 

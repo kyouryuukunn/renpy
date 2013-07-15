@@ -27,7 +27,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <Python.h>
 #include <SDL/SDL.h>
 
-void PSS_play(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int fadeout, int tight, int paused);
+void PSS_play(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int fadeout, int tight, int paused, int pos);
 void PSS_queue(int channel, SDL_RWops *rw, const char *ext, PyObject *name, int fadeout, int tight);
 void PSS_stop(int channel);
 void PSS_dequeue(int channel, int even_tight);
