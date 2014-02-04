@@ -405,6 +405,15 @@ screen preferences:
                 textbutton _("All") action Preference("transitions", "all")
                 textbutton _("None") action Preference("transitions", "none")
 
+            # これらは window auto ステートメント使用時のみ有効です。
+            # frame:
+            #     style_group "pref"
+            #     has vbox
+
+            #     label _("During Transitions")
+            #     textbutton _("Keep Window") action Preference("during transitions", "keep window")
+            #     textbutton _("Keep String") action Preference("during transitions", "keep string")
+
             frame:
                 style_group "pref"
                 has vbox

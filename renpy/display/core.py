@@ -62,6 +62,32 @@ def init_time():
 def get_time():
     return time_base + pygame.time.get_ticks() / 1000.0
 
+def next_who(count=10):
+    scry = renpy.exports.scry()
+    scry = scry.next()
+
+    while count and scry:
+
+        count -= 1
+        if scry.who:
+            return scry.who
+        scry = scry.next()
+    return None
+
+def next_scene(count=10):
+    scry = renpy.exports.scry()
+    scry = scry.next()
+
+    while count and scry:
+
+        count -= 1
+        if scry.scene:
+            return True
+        if scry.interacts:
+            return False
+        scry = scry.next()
+    return None
+
 
 def displayable_by_tag(layer, tag):
     """
@@ -1637,6 +1663,10 @@ class Interface(object):
         if not renpy.store._window:
             return
 
+        if (renpy.store._window == "auto" and
+             renpy.game.preferences.during_trans != "window"):
+            return
+
         if renpy.game.context().scene_lists.shown_window:
             return
 
@@ -1998,6 +2028,17 @@ class Interface(object):
             # Clean out transient stuff at the end of an interaction.
             if clear:
                 scene_lists = renpy.game.context().scene_lists
+                if (renpy.store._window == "auto" and
+                     renpy.game.preferences.during_trans == "string" and
+                     not next_scene()):
+
+                    if (("screens", "say") in scene_lists.additional_transient and
+                         not isinstance(next_who(), renpy.store.NVLCharacter)):
+                        scene_lists.additional_transient.remove(("screens", "say"))
+
+                    if (("screens", "nvl") in scene_lists.additional_transient and
+                         isinstance(next_who(), renpy.store.NVLCharacter)):
+                        scene_lists.additional_transient.remove(("screens", "nvl"))
                 scene_lists.replace_transient()
 
             self.ongoing_transition = { }

@@ -183,3 +183,16 @@ translate japanese strings:
     # game/screens.rpy:453
     old "Voice Sustain"
     new "改行後もボイス継続"
+
+
+    # game/screens.rpy:373
+    old "During Transitions"
+    new "画面効果中"
+
+    # game/screens.rpy:374
+    old "Keep Window"
+    new "ウィンドウ表示"
+
+    # game/screens.rpy:375
+    old "Keep String"
+    new "テキストも表示"

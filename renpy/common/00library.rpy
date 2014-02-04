@@ -42,7 +42,10 @@ init -1700 python:
             who = narrator
 
         if isinstance(who, NVLCharacter):
+            _nvl_list = store.nvl_list
+            nvl_clear()
             nvl_show_core()
+            store.nvl_list = _nvl_list
         else:
             store.narrator("", interact=False)
 

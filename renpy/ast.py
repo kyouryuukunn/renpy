@@ -500,6 +500,7 @@ class Say(Node):
                 who = renpy.python.py_eval(self.who)
         else:
             who = None
+        rv.who = who
 
         if self.interact:
             renpy.exports.scry_say(who, rv)
@@ -1036,6 +1037,10 @@ class Scene(Node):
 
         next_node(self.next)
 
+        if renpy.store._window == "auto":
+            renpy.store._window = False
+            renpy.store._scene = True
+
         renpy.config.scene(self.layer)
 
         if self.imspec:
@@ -1047,6 +1052,12 @@ class Scene(Node):
             predict_imspec(self.imspec, atl=getattr(self, "atl", None), scene=True)
 
         return [ self.next ]
+
+    def scry(self):
+        rv = Node.scry(self)
+        rv.scene = True
+
+        return rv
 
 
 class Hide(Node):
@@ -1143,6 +1154,10 @@ class With(Node):
             paired = None
 
         renpy.exports.with_statement(trans, paired)
+
+        if renpy.store._scene:
+            renpy.store._window = "auto"
+            renpy.store._scene = False
 
     def predict(self):
 
