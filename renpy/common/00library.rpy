@@ -44,7 +44,7 @@ init -1700 python:
         if isinstance(who, NVLCharacter):
             nvl_show_core()
         else:
-            store.narrator("", interact=False)
+            store.Character(None, kind=adv, what_style='say_thought')("", interact=False)
 
     config.empty_window = _default_empty_window
 
