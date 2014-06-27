@@ -90,6 +90,8 @@ init 1900 python hide:
             if not fn.lower().endswith(".png") and not fn.lower().endswith(".jpg"):
                 continue
 
+            fn = fn.replace(".mask.jpg", "")
+            fn = fn.replace(".base.jpg", "")
             # Strip the extension, replace slashes.
             shortfn = fn[:-4].replace("\\", "/")
 
