@@ -78,6 +78,13 @@ user-defined forms of interaction occur.
 
 .. _warping_to_a_line:
 
+Shift+T Transform Viewer
+------------------------
+
+When :var:`config.developer` is True, pressing transform_viewer (by default,
+"shift+T"), will open Transform Viewer. This allow you to adjustment transform
+properties by bars and see the result at the moment.
+
 Warping to a Line
 ------------------
 

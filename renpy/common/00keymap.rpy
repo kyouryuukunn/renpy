@@ -34,6 +34,7 @@ init -1600 python:
         dump_styles = [ ],
         reload_game = [ 'R' ],
         inspector = [ 'I' ],
+        transform_viewer = [ 'T' ],
         developer = [ 'D' ],
         quit = [ 'meta_q', 'alt_K_F4', 'alt_q' ],
         iconify = [ 'meta_m', 'alt_m' ],
@@ -294,6 +295,7 @@ init -1100 python:
         self_voicing = Preference("self voicing", "toggle"),
         clipboard_voicing = Preference("clipboard voicing", "toggle"),
         progress_screen = _progress_screen,
+        transform_viewer = _transform_viewer.viewer,
         )
 
     config.underlay = [ km ]

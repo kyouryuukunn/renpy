@@ -104,6 +104,9 @@ init -1900 python:
             config.predict_screen_statements = False
             config.transition_screens = False
 
+        if version <= (6, 19, 0):
+            config.keymap['transform_viewer'] = [ 'T' ]
+
     # The version of Ren'Py this script is intended for, or
     # None if it's intended for the current version.
     config.script_version = None
