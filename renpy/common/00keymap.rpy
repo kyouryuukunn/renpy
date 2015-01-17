@@ -35,6 +35,7 @@ init -1600 python:
         reload_game = [ 'R' ],
         inspector = [ 'I' ],
         developer = [ 'D' ],
+        camera_viewer = [ 'M' ],
         quit = [ 'meta_q', 'alt_K_F4', 'alt_q' ],
         iconify = [ 'meta_m', 'alt_m' ],
         help = [ 'K_F1', 'meta_shift_/' ],
@@ -292,6 +293,7 @@ init -1100 python:
         console = _console.enter,
         profile_once = _profile_once,
         self_voicing = Preference("self voicing", "toggle"),
+        camera_viewer = _camera_viewer.viewer,
         clipboard_voicing = Preference("clipboard voicing", "toggle"),
         progress_screen = _progress_screen,
         )
