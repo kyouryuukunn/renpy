@@ -320,6 +320,9 @@ Occasionally Used
     * lucy/mad.png, Ren'Py will define the image "lucy mad".
     * mary.png, Ren'Py will do nothing. (As the image does not have two components.)
 
+    If ``default_<image tag name>`` transform exists, the transform is
+    applied to the images with the tag.
+
 .. var:: config.automatic_images_strip = []
 
     A list of strings giving prefixes that are stripped out when

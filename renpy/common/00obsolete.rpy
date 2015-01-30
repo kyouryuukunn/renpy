@@ -115,7 +115,13 @@ init 1900 python hide:
             if name in renpy.display.image.images:
                 continue
 
-            renpy.image(name, fn)
+            # If default_<image tag name> transform exists, the transform is
+            # applied to the image tags.
+            tran = getattr(renpy.store, "default_"+name[0], None)
+            if tran:
+                renpy.image(name, At(fn, tran))
+            else:
+                renpy.image(name, fn)
 
     if config.automatic_images:
         create_automatic_images()
