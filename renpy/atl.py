@@ -109,6 +109,7 @@ PROPERTIES = {
     "nearest" : bool_or_none,
     "alpha" : float,
     "additive" : float,
+    "blur" : float,
     "around" : (position, position),
     "alignaround" : (float, float),
     "angle" : float,

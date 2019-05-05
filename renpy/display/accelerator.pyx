@@ -24,7 +24,7 @@ from __future__ import print_function
 
 import renpy
 import math
-from renpy.display.render cimport Render, Matrix2D, render
+from renpy.display.render cimport Render, Matrix2D, render, pgrender
 from renpy.display.core import absolute
 
 from sdl2 cimport *
@@ -352,6 +352,15 @@ def transform_render(self, widtho, heighto, st, at):
         alpha = 1.0
 
     rv.alpha = alpha
+
+    blur = state.blur
+
+    if blur < 0.0:
+        blur = 0.0
+    elif blur > 1.0:
+        blur = 1.0
+
+    rv.blur = blur
 
     rv.over = 1.0 - state.additive
     rv.xclipping = clipping

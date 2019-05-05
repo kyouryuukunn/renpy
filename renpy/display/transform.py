@@ -116,6 +116,7 @@ class TransformState(renpy.object.Object):
         self.alpha = 1
         self.nearest = None
         self.additive = 0.0
+        self.blur = 0.0
         self.rotate = None
         self.rotate_pad = True
         self.transform_anchor = False
@@ -175,6 +176,7 @@ class TransformState(renpy.object.Object):
         self.nearest = ts.nearest
         self.alpha = ts.alpha
         self.additive = ts.additive
+        self.blur = ts.blur
         self.rotate = ts.rotate
         self.rotate_pad = ts.rotate_pad
         self.transform_anchor = ts.transform_anchor
@@ -245,6 +247,7 @@ class TransformState(renpy.object.Object):
         diff2("nearest", newts.nearest, self.nearest)
         diff2("alpha", newts.alpha, self.alpha)
         diff2("additive", newts.additive, self.additive)
+        diff2("blur", newts.blur, self.blur)
         diff2("rotate", newts.rotate, self.rotate)
         diff2("rotate_pad", newts.rotate_pad, self.rotate_pad)
         diff2("transform_anchor", newts.transform_anchor, self.transform_anchor)
@@ -436,13 +439,14 @@ class Transform(Container):
     Documented in sphinx, because we can't scan this object.
     """
 
-    __version__ = 5
+    __version__ = 6
     transform_event_responder = True
 
     # Proxying things over to our state.
     nearest = Proxy("nearest")
     alpha = Proxy("alpha")
     additive = Proxy("additive")
+    blur = Proxy("blur")
     rotate = Proxy("rotate")
     rotate_pad = Proxy("rotate_pad")
     transform_anchor = Proxy("transform_anchor")
@@ -532,6 +536,9 @@ class Transform(Container):
         if version < 5:
             self.replaced_request = False
             self.replaced_response = True
+
+        if version < 6:
+            self.blur = 0.0
 
     DEFAULT_ARGUMENTS = {
         "selected_activate" : { },
