@@ -324,6 +324,59 @@ def annotate_unicode(list glyphs, bint no_ideographs, int cjk):
 
         old_g = g
 
+def annotate_janome(list glyphs):
+    """
+    Annotate the characters with line splitting information by janome.
+    """
+    cdef Glyph g, old_g
+    from janome.tokenizer import Tokenizer
+    _janome_tokenizer = Tokenizer()
+
+    org_text = ""
+    for g in glyphs:
+        org_tet = org_text + chr(g.character)
+    tokens = _janome_tokenizer.tokenize(org_text)
+
+    split_before_list = []
+    pre_word_class_is_particle = 0
+    pos = 0
+    for token in tokens:
+        word, word_class = tokens.decode('utf-8').split(',')[0].split()
+        if pre_word_class_is_particle == 1:
+            split_before_list.append(pos)
+
+        pos = pos + len(word)
+        if word_class == "助詞":
+            pre_word_class_is_particle = 1
+        else:
+            pre_word_class_is_particle = 0
+        
+
+    old_g = glyphs[0]
+    for i in range(len(glyphs)):
+        g = glyphs[i]
+
+        if i in split_before_list:
+            g.split = SPLIT_BEFORE
+
+        # Don't split ruby.
+        if g.ruby == RUBY_TOP or g.ruby == RUBY_ALT:
+            g.split = SPLIT_NONE
+        elif g.ruby == RUBY_BOTTOM and old_g.ruby == RUBY_BOTTOM:
+            g.split = SPLIT_NONE
+    
+        # characters aren't placed on the front of line. 
+        if g.character == 0 or chr(g.character) in ",.)];:\"'。、」）":
+            g.split = SPLIT_NONE
+
+        # characters are wrapped after 
+        if chr(old_g.character) in "。、」）":
+            g.split = SPLIT_BEFORE
+
+        if g.character == 0x20 or g.character == 0x200b:
+            g.split = SPLIT_INSTEAD
+
+        old_g = g
 
 
 def linebreak_greedy(list glyphs, int first_width, int rest_width):
