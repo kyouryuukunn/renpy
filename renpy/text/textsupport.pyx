@@ -327,6 +327,13 @@ def annotate_unicode(list glyphs, bint no_ideographs, int cjk):
 def annotate_janome(list glyphs):
     """
     Annotate the characters with line splitting information by janome.
+    文節改行に対応させようとしたがいろいろ問題があるので中止した。
+    インポートするだけで起動に２０秒かかり、その後も微妙に動作が引っかかる
+    cythonの領域なのでコンパイルが必要でいつものプラグインとしての配布はできない、リリースのたびにコンパイルはきつい
+    外部ソフトを使用しているのでマージされる可能性が低い
+    タイミングの問題なのか、gameフォルダにライブラリをいれてからこのファイルでインポート使用とするとエラーになる。本体に入れるのがスマート
+    なぜかglobal変数が機能しない、gui.languageも機能しないのでstyle.text.languageを直接いじること
+
     """
     cdef Glyph g, old_g
     from janome.tokenizer import Tokenizer
