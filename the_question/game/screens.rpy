@@ -96,24 +96,55 @@ style frame:
 ## https://www.renpy.org/doc/html/screen_special.html#say
 
 screen say(who, what):
-    style_prefix "say"
+    if not vertical_text:
+        style_prefix "say"
 
-    window:
-        id "window"
+        window:
+            id "window"
 
-        if who is not None:
+            if who is not None:
 
-            window:
-                style "namebox"
-                text who id "who"
+                window:
+                    id "namebox"
+                    style "namebox"
+                    text who id "who"
 
-        text what id "what"
+            text what id "what"
 
 
-    ## If there's a side image, display it above the text. Do not display on the
-    ## phone variant - there's no room.
-    if not renpy.variant("small"):
-        add SideImage() xalign 0.0 yalign 1.0
+
+        ## If there's a side image, display it above the text. Do not display on the
+        ## phone variant - there's no room.
+        if not renpy.variant("small"):
+            add SideImage() xalign 0.0 yalign 1.0
+    else:
+
+        window:
+            id "window"
+            yfill True
+            ysize 1.0
+            background "gui/nvl.png"
+
+            if who is not None:
+
+                window:
+                    id "namebox"
+                    style "namebox"
+                    xpos 1000
+                    ypos 15
+                    text who id "who" vertical True:
+                        font "MTLc3m.ttf"
+
+            text what id "what" vertical True:
+                font "MTLc3m.ttf"
+                xpos 930
+                ypos 50
+                ysize 600
+                line_spacing 5
+
+
+        if not renpy.variant("small"):
+            add SideImage() xalign 0.9 yalign 0.1
 
 
 style window is default
@@ -201,10 +232,22 @@ style input:
 
 screen choice(items):
     style_prefix "choice"
+    if not vertical_text:
 
-    vbox:
-        for i in items:
-            textbutton i.caption action i.action
+        vbox:
+            for i in items:
+                textbutton i.caption action i.action
+    else:
+
+        hbox:
+            box_reverse True
+            for i in items:
+                textbutton i.caption action i.action text_style "choice_button_vtext":
+                    # background
+                    padding (30, 100, 30, 100)
+                    xsize 100
+                    ysize 500
+
 
 
 ## When this is true, menu captions will be spoken by the narrator. When false,
@@ -215,6 +258,7 @@ define config.narrator_menu = True
 style choice_vbox is vbox
 style choice_button is button
 style choice_button_text is button_text
+style choice_hbox is hbox
 
 style choice_vbox:
     xalign 0.5
@@ -228,6 +272,13 @@ style choice_button is default:
 
 style choice_button_text is default:
     properties gui.button_text_properties("choice_button")
+
+style choice_button_vtext is choice_button_text:
+    vertical True
+
+style choice_hbox:
+    xalign .5
+    yalign .5
 
 
 ## Quick Menu screen ###########################################################
@@ -1356,53 +1407,122 @@ style notify_text:
 
 screen nvl(dialogue, items=None):
 
-    window:
-        style "nvl_window"
+    if not vertical_text:
+        window:
+            style "nvl_window"
 
-        has vbox:
-            spacing gui.nvl_spacing
+            has vbox:
+                spacing gui.nvl_spacing
 
-        ## Displays dialogue in either a vpgrid or the vbox.
-        if gui.nvl_height:
+            ## Displays dialogue in either a vpgrid or the vbox.
+            if gui.nvl_height:
 
-            vpgrid:
-                cols 1
-                yinitial 1.0
+                vpgrid:
+                    cols 1
+                    yinitial 1.0
+
+                    use nvl_dialogue(dialogue)
+
+            else:
 
                 use nvl_dialogue(dialogue)
 
-        else:
+            ## Displays the menu, if given. The menu may be displayed incorrectly if
+            ## config.narrator_menu is set to True, as it is above.
+            for i in items:
 
-            use nvl_dialogue(dialogue)
+                textbutton i.caption:
+                    action i.action
+                    style "nvl_button"
 
-        ## Displays the menu, if given. The menu may be displayed incorrectly if
-        ## config.narrator_menu is set to True, as it is above.
-        for i in items:
+        add SideImage() xalign 0.0 yalign 1.0
+    else:
+        window:
+            style "nvl_window"
+            has hbox:
+                # spacing gui.nvl_spacing
+                box_reverse True
+                xpos 0.75
+                xanchor 1.0
 
-            textbutton i.caption:
-                action i.action
-                style "nvl_button"
+            if gui.nvl_height:
 
-    add SideImage() xalign 0.0 yalign 1.0
+                vpgrid:
+                    rows 1
+                    xinitial 1.0
+
+                    use nvl_dialogue(dialogue)
+
+            else:
+
+                use nvl_dialogue(dialogue)
+
+            for i in items:
+
+                textbutton i.caption:
+                    action i.action
+                    style "nvl_button"
+                    text_style  "nvl_button_vtext"
+                    xpos 0
+                    ypos 100
+                    ysize 600
+                    xsize 60
+
+
+        add SideImage() xalign 0.9 yalign 0.1
 
 
 screen nvl_dialogue(dialogue):
 
-    for d in dialogue:
+    if not vertical_text:
+        for d in dialogue:
 
-        window:
-            id d.window_id
+            window:
+                id d.window_id
 
-            fixed:
-                yfit gui.nvl_height is None
+                fixed:
+                    yfit gui.nvl_height is None
 
-                if d.who is not None:
+                    if d.who is not None:
 
-                    text d.who:
-                        id d.who_id
+                        text d.who:
+                            id d.who_id
 
-                text d.what:
-                    id d.what_id
+                    text d.what:
+                        id d.what_id
+    else:
+        for d in dialogue:
+
+            window:
+                id d.window_id
+                xfill False
+                yfill True
+                ysize 600
+
+                has hbox:
+                    box_reverse True
+
+                    if d.who is not None:
+
+                        text d.who:
+                            id d.who_id
+                            vertical True
+                            font "MTLc3m.ttf"
+                            xanchor 0.0
+                            line_spacing 20
+                            xsize None
+                            xpos None
+
+                    text d.what:
+                        id d.what_id
+                        font "MTLc3m.ttf"
+                        vertical True
+                        line_spacing 5
+                        min_width None
+                        xsize None
+                        # xanchor 1.0
+                        xpos None
+                        ypos 50
 
 
 ## This controls the maximum number of NVL-mode entries that can be displayed at
@@ -1417,6 +1537,7 @@ style nvl_dialogue is say_dialogue
 
 style nvl_button is button
 style nvl_button_text is button_text
+style nvl_button_vtext is nvl_button_text
 
 style nvl_window:
     xfill True
@@ -1463,6 +1584,10 @@ style nvl_button:
 
 style nvl_button_text:
     properties gui.button_text_properties("nvl_button")
+
+style nvl_button_vtext:
+    vertical True
+    yalign 0.0
 
 
 
