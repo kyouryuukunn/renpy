@@ -218,6 +218,39 @@ def get_poi(state):
     raise Exception("The point_to transform property should be None, a 3-tuple (x, y, z), or True.")
 
 
+#convert R(z->y->x)(a, b, c) to R(x->y->z)(x, y, z)
+def zyx_to_xyz(a, b, c):
+
+    sina = math.sin(math.pi*a/180)
+    cosa = math.cos(math.pi*a/180)
+    sinb = math.sin(math.pi*b/180)
+    cosb = math.cos(math.pi*b/180)
+    sinc = math.sin(math.pi*c/180)
+    cosc = math.cos(math.pi*c/180)
+
+    siny = min(1, max(-sina * sinc + cosa * sinb * cosc, -1))
+    cosy = math.sqrt(1 - siny**2)
+    if cosy != 0:
+        cosx = min(1, max(cosa * cosb / cosy, -1))
+        cosz = min(1, max(cosb * cosc / cosy, -1))
+    else:
+        cosx = 1
+        cosz = 1
+
+    x = math.acos(cosx) * 180 /math.pi
+    y = math.asin(siny) * 180 /math.pi
+    z = math.acos(cosz) * 180 /math.pi
+
+    #assume cosy > 0
+    if sina * cosc + cosa * sinb * sinc < 0:
+        x = 360 - x
+
+    if cosa * sinc + sina * sinb * cosc < 0:
+        z = 360 - z
+
+    return (x, y, z)
+
+
 ################################################################################
 # Transform render function
 ################################################################################
@@ -657,6 +690,8 @@ def transform_render(self, widtho, heighto, st, at):
     else:
         self.reverse = Matrix2D(rxdx, rxdy, rydx, rydy)
 
+    fix_axis = state.fix_axis
+
     if state.point_to is not None:
         poi = get_poi(state)
     else:
@@ -746,7 +781,7 @@ def transform_render(self, widtho, heighto, st, at):
 
     else:
 
-        if poi or orientation or xyz_rotate:
+        if poi or orientation or xyz_rotate or fix_axis:
             if state.matrixanchor is None:
 
                 manchorx = width / 2.0
@@ -762,7 +797,87 @@ def transform_render(self, widtho, heighto, st, at):
 
             m = Matrix.offset(-manchorx, -manchory, 0.0)
 
-        if poi:
+        if fix_axis is not None:
+            if isinstance(fix_axis, renpy.display.transform.Camera):
+                layer = fix_axis.layer
+            else:
+                raise Exception("fix_axis requires Camera.")
+
+            sle = renpy.game.context().scene_lists
+            d = sle.camera_transform[layer]
+            if not isinstance(d, renpy.display.motion.Transform):
+                fix_axis = False
+            else:
+                camera_poi = d.point_to
+                camera_orientation = d.orientation
+                camera_xyz_rotate = False
+                if d.xrotate or d.yrotate or d.zrotate:
+                    camera_xyz_rotate = True
+                    xrotate = d.xrotate or 0
+                    yrotate = d.yrotate or 0
+                    zrotate = d.zrotate or 0
+
+                if camera_poi:
+
+                    obj = object()
+                    obj.point_to = fix_axis
+                    obj.perspective = None
+                    camera_pos = get_poi(obj)
+
+                    a, b, c = ( float(e - s) for s, e in zip(camera_pos, camera_poi) )
+                    v_len = math.sqrt(a**2 + b**2 + c**2) # math.hypot is better in py3.8+
+                    if v_len == 0:
+                        xpoi = ypoi = zpoi = 0
+                    else:
+                        a /= v_len
+                        b /= v_len
+                        c /= v_len
+
+                        sin_ypoi = min(1., max(-a, -1.))
+                        ypoi = math.asin(sin_ypoi)
+                        if c == 0:
+                            if abs(a) == 1:
+                                xpoi = 0
+                            else:
+                                sin_xpoi = min(1., max(b / math.cos(ypoi), -1.))
+                                xpoi = math.asin(sin_xpoi)
+                        else:
+                            xpoi = math.atan(-b/c)
+
+                        if c > 0:
+                            ypoi = math.pi - ypoi
+
+                        if xpoi != 0.0 and ypoi != 0.0:
+                            if xpoi == math.pi / 2 or xpoi == - math.pi / 2:
+                                if -math.sin(xpoi) * math.sin(ypoi) > 0.0:
+                                    zpoi = math.pi / 2
+                                else:
+                                    zpoi = - math.pi / 2
+                            else:
+                                zpoi = math.atan(-(math.sin(xpoi) * math.sin(ypoi)) / math.cos(xpoi))
+                        else:
+                            zpoi = 0
+
+                        xpoi = math.degrees(xpoi)
+                        ypoi = math.degrees(ypoi)
+                        zpoi = math.degrees(zpoi)
+                        xpoi, ypoi, zpoi = zyx_to_xyz(xpoi, ypoi, zpoi)
+
+                if camera_orientation:
+                    xorientation, yorientation, zorientation = camera_orientation
+                    xorientation, yorientation, zorientation = zyx_to_xyz(xorientation, yorientation, 0)
+
+                if camera_xyz_rotate:
+                    xrotate, yrotate, zrotate = zyx_to_xyz(xrotate, yrotate, 0)
+
+                if camera_xyz_rotate:
+                    m = Matrix.rotate(xrotate, yrotate, zrotate) * m
+                if camera_orientation:
+                    m = Matrix.rotate(xorientation, yorientation, zorientation) * m
+                if camera_poi:
+                    m = Matrix.rotate(xpoi, ypoi, zpoi) * m
+
+        if poi not fix_axis:
             placement = self.get_placement()
             xplacement, yplacement = renpy.display.core.place(widtho, heighto, width, height, placement)
             start_pos = (xplacement + manchorx, yplacement + manchory, state.zpos)
@@ -793,13 +908,13 @@ def transform_render(self, widtho, heighto, st, at):
                 xpoi = math.degrees(xpoi)
                 ypoi = math.degrees(ypoi)
 
-        if poi:
+        if poi and not fix_axis:
             m = Matrix.rotate(xpoi, ypoi, 0) * m
         if orientation:
             m = Matrix.rotate(xorientation, yorientation, zorientation) * m
         if xyz_rotate:
             m = Matrix.rotate(xrotate, yrotate, zrotate) * m
-        if poi or orientation or xyz_rotate:
+        if (poi and not fix_axis) or orientation or xyz_rotate:
             m = Matrix.offset(manchorx, manchory, 0.0) * m
 
             self.reverse = m * self.reverse

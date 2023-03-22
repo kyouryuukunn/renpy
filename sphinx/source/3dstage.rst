@@ -314,6 +314,25 @@ The following transform properties are used by the 3D Stage.
     This sets the location of the (0, 0, 0) point that point_to, orientation,
     xrotate, yrotate, zrotate and matrixtransform apply their transforms to.
 
+.. transform-property:: fix_axis
+
+    :type: Camera, or None
+    :default: None
+
+    If this is not None, this should be :ref:`Camera`. This rotates the
+    displayable so that it is perpendicular to the camera.  This is intended to
+    reduce discomfort from viewing 2D images from an angle. This is exclusive to
+    `point_to` property.
+
+    Note fix_axis isn't updated automatically. so, you should write like below if
+    you want it is updated::
+
+        # eileen is always perpendicular to to the camera.
+        show eileen happy at center:
+            fix_axis Camera()
+            0
+            repeat
+
 .. transform-property:: point_to
 
     :type: (float, float, float), Camera, or None
@@ -328,6 +347,9 @@ The following transform properties are used by the 3D Stage.
     If this is not None, this is a 3-tuple or an instance of :ref:`Camera`.
     An (x, y, z) format tuple represents the position of the point of interest.
     An instance of Camera means to point at the camera.
+
+    This is exclusive to `fix_axis` property and `fix_axis` takes precedence
+    over this.
 
     Note point_to isn't updated automatically. so, you should write like below if
     you want it is updated::
