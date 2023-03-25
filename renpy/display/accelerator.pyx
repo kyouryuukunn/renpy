@@ -172,50 +172,38 @@ def quaternion_slerp(complete, old, new):
     return (x, y, z)
 
 
-def get_poi(state):
+def get_camera_pos(camera):
     """
-    For the given state, return the poi - the point that point_to looks at.
+    For the given Camera object, return that position.
     """
 
-    point_to = state.point_to
+    layer = camera.layer
+    sle = renpy.game.context().scene_lists
 
-    if isinstance(point_to, tuple) and len(point_to) == 3:
-        return point_to
+    d = sle.camera_transform.get(layer, None)
 
-    if isinstance(point_to, renpy.display.transform.Camera):
+    if not isinstance(d, renpy.display.motion.Transform):
+        return None
 
-        if state.perspective:
-            raise Exception("The point_to transform property for camera should not be True.")
+    perspective = d.perspective
 
-        layer = point_to.layer
-        sle = renpy.game.context().scene_lists
+    if perspective is True:
+        perspective = renpy.config.perspective
 
-        d = sle.camera_transform.get(layer, None)
+    elif isinstance(perspective, (int, float)):
+        perspective = (renpy.config.perspective[0], perspective, renpy.config.perspective[2])
 
-        if not isinstance(d, renpy.display.motion.Transform):
-            return None
+    if not perspective:
+        return None
 
-        perspective = d.perspective
+    z11 = perspective[1]
+    width = renpy.config.screen_width
+    height = renpy.config.screen_height
 
-        if perspective is True:
-            perspective = renpy.config.perspective
+    placement = (d.xpos, d.ypos, d.xanchor, d.yanchor, d.xoffset, d.yoffset, True)
+    xplacement, yplacement = renpy.display.core.place(width, height, width, height, placement)
 
-        elif isinstance(perspective, (int, float)):
-            perspective = (renpy.config.perspective[0], perspective, renpy.config.perspective[2])
-
-        if not perspective:
-            return None
-
-        z11 = perspective[1]
-        width = renpy.config.screen_width
-        height = renpy.config.screen_height
-
-        placement = (d.xpos, d.ypos, d.xanchor, d.yanchor, d.xoffset, d.yoffset, True)
-        xplacement, yplacement = renpy.display.core.place(width, height, width, height, placement)
-
-        return (xplacement + width / 2, yplacement + height / 2, d.zpos + z11)
-
-    raise Exception("The point_to transform property should be None, a 3-tuple (x, y, z), or True.")
+    return (xplacement + width / 2, yplacement + height / 2, d.zpos + z11)
 
 
 def get_poi_rotation(a, b, c, camera=False):
@@ -762,7 +750,15 @@ def transform_render(self, widtho, heighto, st, at):
     fix_axis = state.fix_axis
 
     if state.point_to is not None:
-        poi = get_poi(state)
+        if isinstance(state.point_to, tuple) and len(state.point_to) == 3:
+                poi = state.point_to
+        elif isinstance(state.point_to, renpy.display.transform.Camera):
+            if state.perspective:
+                raise Exception("The point_to transform property for camera should not be True.")
+            else:
+                poi = get_camera_pos(state.point_to)
+        else:
+            raise Exception("The point_to transform property should be None, a 3-tuple (x, y, z), or True.")
     else:
         poi = None
 
@@ -850,10 +846,7 @@ def transform_render(self, widtho, heighto, st, at):
 
                 if camera_poi:
 
-                    obj = object()
-                    obj.point_to = fix_axis
-                    obj.perspective = None
-                    camera_pos = get_poi(obj)
+                    camera_pos = get_camera_pos(fix_axis)
 
                     a, b, c = ( float(e - s) for s, e in zip(camera_pos, camera_poi) )
                     xpoi, ypoi, zpoi = get_poi_rotation(a, b, c, True)
@@ -873,21 +866,22 @@ def transform_render(self, widtho, heighto, st, at):
                 if camera_poi:
                     m = Matrix.rotate(xpoi, ypoi, zpoi) * m
 
-        if poi not fix_axis:
+        if poi and fix_axis is None:
             placement = self.get_placement()
             xplacement, yplacement = renpy.display.core.place(widtho, heighto, width, height, placement)
             start_pos = (xplacement + manchorx, yplacement + manchory, state.zpos)
 
             a, b, c = ( float(e - s) for s, e in zip(start_pos, poi) )
+            xpoi, ypoi, zpoi = get_poi_rotation(a, b, c)
 
 
-        if poi and not fix_axis:
+        if poi and fix_axis is None:
             m = Matrix.rotate(xpoi, ypoi, 0) * m
         if orientation:
             m = Matrix.rotate(xorientation, yorientation, zorientation) * m
         if xyz_rotate:
             m = Matrix.rotate(xrotate, yrotate, zrotate) * m
-        if (poi and not fix_axis) or orientation or xyz_rotate:
+        if poi or orientation or xyz_rotate or fix_axis:
             m = Matrix.offset(manchorx, manchory, 0.0) * m
 
             self.reverse = m * self.reverse
